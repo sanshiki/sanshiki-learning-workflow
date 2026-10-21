@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Study"
+  short_description: "Map a codebase, run an example, trace it in a debugger"
+  default_prompt: "Use $code-study to help me learn this project through a concise code map, a minimal real run, and a debugger exploration route."
