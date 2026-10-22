@@ -40,15 +40,47 @@ Do not default to full training, large downloads, installing every dependency,
 or restructuring the project. Respect existing authorization; ask about a
 material new cost or side effect only when necessary.
 
+Treat models with **5 billion parameters or more (>=5B)** as large-weight models;
+this is parameter count, not checkpoint file size. Check docs/configuration
+without downloading weights or instantiating the full model just to count them.
+For these models, or whenever checkpoint-based reproduction is cumbersome,
+prefer a **weight-free minimal reproduction** unless the learner requests a
+weighted run. Skip checkpoint loading and weight-dependent stages explicitly.
+Choose a useful real-code slice: preprocessing, tensor assembly, configuration
+effects, loss math on small inputs, or a small standalone core operation.
+Use a scoped example/harness instead of silently patching the main pipeline.
+Show what executes, what is bypassed, and what still needs trained weights.
+Do not allocate a full large model with random weights as the default workaround.
+
 Give exact commands, working directory, necessary setup, and each step's purpose.
 Execute when tools and authorization permit; inspect exit status and observable
 output. Diagnose actual errors. Record input, output, notable observations, and
 modules exercised, with enough environment/version information to reproduce it.
 
-Reduce workload only when the relevant semantics remain intact; state reductions
-and their limits. Do not quietly substitute a mock, CPU fallback, or synthetic
-example. If blocked, report the attempted command, precise obstacle, and static
-findings; do not claim success. Offer the smallest useful next verification.
+Preserve the semantics of the slice actually studied. A weight-free run verifies
+that slice, not pretrained predictions, end-to-end inference, or paper results.
+Label synthetic inputs, random initialization, mocks, and bypassed stages; never
+present them as equivalent weighted behavior. If the learning question itself
+requires weights, explain the gap and offer a weighted next step. If blocked,
+report the attempted command, precise obstacle, and static findings; do not
+claim success. Offer the smallest useful next verification.
+
+### Make the Python route ready to debug
+
+When constructing a Python learning environment, **create or update the target
+project's `.vscode/launch.json`**, not just a suggested snippet. Configure
+`version: "0.2.0"`, `type: "debugpy"`, `request: "launch"`, the chosen Python
+interpreter, exactly one of `program`/`module`, and the actual `args`, `cwd`,
+necessary non-secret environment, and suitable console. Use `justMyCode: false`
+when tracing dependency code. Point to the weight-free harness when that is the
+selected run; do not accidentally launch the original weight-loading entry.
+Inspect existing JSON/JSONC and merge the relevant named configuration, preserving
+other entries and settings. Check paths, interpreter, and Python Debugger extension
+availability; validate the corresponding command and say whether a debugger
+session was actually tested. Give the launch configuration name and F5 steps.
+If writes are unavailable, provide the complete configuration and mark file
+creation blocked. For a non-Python path, use its appropriate debugger rather
+than inventing a Python entry point; explain any limitation.
 
 ## Phase 3 — Trace, observe, and revise
 
@@ -83,6 +115,12 @@ branch is selected. Explain incrementally rather than dumping the full call grap
 - Explain in order: plain-language purpose → concrete example → code location
   → technical detail only as needed. Prefer actual inputs and outputs; label
   simplified or hypothetical examples explicitly.
+- In conversation and analysis docs, favor conversational language and familiar
+  analogies over dense terminology. Introduce a technical term with its everyday
+  meaning. Use an apt visual when it helps: boxes/arrows for handoffs, stacked
+  grids for tensor dimensions, or a short Mermaid flow. Tie each part of the
+  analogy or diagram to actual symbols/data and note where the analogy breaks;
+  it must not replace exact shapes, evidence, or executable observations.
 - Keep initial notes to roughly 1–2 screens: about 500–800 Chinese characters or
   a similarly concise response in the learner's language. Use short lists,
   arrows, small tables, or diagrams when useful. Quote only essential fragments.
