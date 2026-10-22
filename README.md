@@ -1,38 +1,49 @@
 # Code Study
 
+English | [Chinese version](README_zh.md)
+
 A reusable Codex Skill: **map the code → run a minimal example → trace and debug**.
 
-将开源代码学习变成可亲自验证的过程。适用于模型、机器人、训练/推理框架和普通软件；
-不绑定编程语言、IDE 或硬件。解释默认使用学习者的语言。
+Learn open-source code through observations you can verify yourself. Code Study
+works with models, robotics, training and inference frameworks, and general
+software. It is independent of language, IDE, and hardware, and explains things
+in the learner's language.
 
-## 目录与安装
+## Structure and installation
 
 ```text
 .
 ├── .agents/skills/code-study -> ../../skills/code-study
 ├── skills/code-study/
-│   ├── SKILL.md                 # 完整技能指令，唯一源文件
-│   └── agents/openai.yaml       # 展示名称和默认调用提示
-├── docs/smoke-test.md            # 实际示例、运行结果、断点路线及验收记录
+│   ├── SKILL.md                 # Complete instructions; single source of truth
+│   └── agents/openai.yaml       # Display metadata and default invocation
+├── docs/smoke-test.md            # Example, run results, debugger route, validation
 ├── LICENSE                      # MIT
-├── README.md
-└── TASK.md                      # 原始需求
+├── README.md                    # English guide
+├── README_zh.md                 # Chinese guide
+└── TASK.md                      # Original requirements
 ```
 
-[完整 SKILL.md](skills/code-study/SKILL.md) 只有三阶段流程和必要约束，
-不加载仓库说明或测试记录，也不要求额外脚本和运行依赖。
+The [complete SKILL.md](skills/code-study/SKILL.md) contains the three-phase
+workflow and its constraints. It does not load repository documentation or test
+records, and requires no helper scripts or runtime dependencies.
 
-按照已查阅的 [Codex 官方 Skills 文档](https://developers.openai.com/codex/skills/)，
-项目技能放在 `.agents/skills`，个人技能放在 `~/.agents/skills`；支持目录符号链接。
-本仓库用链接指向唯一源目录，避免维护两份指令。
+According to the [Codex Skills documentation](https://developers.openai.com/codex/skills/),
+project skills live in `.agents/skills`, personal skills in `~/.agents/skills`,
+and symlinked skill directories are supported. This repository links to the
+source directory to avoid maintaining duplicate instructions.
 
-- **在本仓库使用：** 克隆后从仓库中启动 Codex，使用下方调用示例。
-- **给其他项目安装：** 将 `skills/code-study` 整个目录复制到目标项目的
-  `.agents/skills/code-study`，或复制到 `~/.agents/skills/code-study` 供个人全局使用。
-  已存在时先检查内容，避免覆盖本地定制。
-- Codex 会自动发现变更；若技能未出现，重启会话。旧版客户端请核对其支持的发现路径。
+- **Use in this repository:** clone it, start Codex inside the repository, and
+  use an invocation below.
+- **Install elsewhere:** copy the entire `skills/code-study` directory into
+  another project's `.agents/skills/code-study`, or into
+  `~/.agents/skills/code-study` for personal use across projects. Inspect any
+  existing installation before replacing local customizations.
+- Codex discovers changes automatically. Restart the session if the skill does
+  not appear; check supported discovery paths when using an older client.
 
-例如，从本仓库根目录安装到尚未存在该技能的个人目录：
+For example, from this repository's root, install into a personal skill directory
+where `code-study` does not already exist:
 
 ```bash
 mkdir -p ~/.agents/skills
@@ -40,52 +51,70 @@ test ! -e ~/.agents/skills/code-study && test ! -L ~/.agents/skills/code-study &
   cp -R skills/code-study ~/.agents/skills/code-study
 ```
 
-## 调用与交互
+## Invocation and interaction
 
 ```text
-$code-study 帮我了解这个仓库，先给一屏代码地图和最小运行入口。
-$code-study 我已跑通官方 Demo，跳过前两阶段，带我追踪输入到输出。
+$code-study Help me understand this repository. Start with a concise code map and a minimal entry point.
+$code-study I have already run the official demo. Skip the first two phases and trace its input to output.
 $code-study Walk me through the Quick Start, then suggest debugger stops.
 ```
 
-自动匹配默认开启：学习陌生项目、理解核心机制、沿示例探索代码时适用。
-没有学习目标的普通修 Bug、功能实现或代码审查不应触发。
+Implicit selection is enabled by default for learning an unfamiliar project,
+understanding a core mechanism, or exploring code through an example. Routine
+bug fixes, feature implementation, and code review without a learning goal
+should not trigger this skill.
 
-| 阶段 | 交付 | 交互方式 |
+| Phase | Deliverable | Interaction |
 | --- | --- | --- |
-| 1：建立地图 | 简短架构概览、约 3–7 个关键文件或符号、阅读起点和可略过部分 | 初次概览后由你选择深入方向 |
-| 2：最小运行 | 依赖与成本检查、实际命令、Python `launch.json`、输入输出和运行证据 | 大权重优先 weight-free，复用已有运行 |
-| 3：沿路径调试 | 一段数据/调用流、1–3 个断点、变量和预期现象、可验证问题 | 你亲自观察，再逐段继续；不假定能控制 IDE |
+| 1: Map the code | Brief architecture overview, roughly 3–7 key files or symbols, a reading starting point, and what can wait | Choose a direction after the initial overview |
+| 2: Run a minimal example | Dependency and cost checks, commands, Python `launch.json`, inputs, outputs, and run evidence | Prefer weight-free paths for large models; reuse completed runs |
+| 3: Trace and debug | A short data/call flow, 1–3 breakpoints, variables, expected observations, and a verifiable question | Observe a checkpoint yourself, then continue; IDE control is not assumed |
 
-明确要求三个阶段时连续推进；已经熟悉或已经跑通的部分可以跳过。
-初始学习笔记默认约 500–800 字、1–2 屏，架构概览尽量不超过 300 字；
-先用口语化的比喻、形象图例和实例讲清直觉，再定位代码，按当前问题补充技术细节。
-明确区分运行验证、代码确认和待验证推断。
+An explicit request for all three phases proceeds through them. Skip familiar
+modules and completed examples. Initial notes normally fit 1–2 screens: about
+500–800 Chinese characters, or a similarly concise response in another language.
+The architecture overview normally stays under 300 Chinese characters or about
+150 English words. Start with familiar analogies, visuals, and examples, then
+locate the code and introduce technical details as needed. Distinguish
+run-verified facts, code-confirmed findings, and unverified hypotheses.
 
-## 三个学习偏好
+## Learning preferences
 
-- **大权重先拆开学：** 以参数量 **≥5B（50 亿）** 为大权重门槛；其他下载或带权重
-  复现麻烦的项目也优先考虑 weight-free。像先拆开看看流水线的传送带和分拣器：
-  运行真实的预处理、张量拼装或小型核心运算，明确跳过权重加载和依赖权重的环节。
-  这能验证所选代码片段，模型的预测能力仍需带权重验证；不默认随机初始化整个大模型。
-- **环境配好就能按 F5：** 构建 Python 学习环境时，实际生成或合并目标项目的
-  `.vscode/launch.json`，配置 `debugpy`、解释器、入口、参数和工作目录。
-  选了 weight-free 路径，就调试该路径。保留已有配置，并说明调试器是否实际运行过。
-- **讲得像面对面聊天：** 用熟悉的比喻配合方框、箭头、网格或 Mermaid 图解释。
-  比如把数据传递画成包裹过站，但仍标清真实函数、数据和比喻不适用的地方。
-  术语按需出现，shape、代码位置和证据仍须精确。
+- **Explore large models without weights first.** Treat models with **at least
+  5 billion parameters (≥5B)** as large-weight models. Also prefer weight-free
+  reproduction whenever downloading or running checkpoints is cumbersome.
+  Think of inspecting a production line's conveyors and sorters first: run real
+  preprocessing, tensor assembly, or small core operations, and identify the
+  weight-loading and weight-dependent stages being skipped. This verifies the
+  selected slice; prediction quality still needs trained weights. Do not
+  initialize an entire large model with random weights by default.
+- **Prepare the environment for F5.** When constructing a Python learning
+  environment, create or merge the target project's `.vscode/launch.json` with
+  `debugpy`, the interpreter, entry point, arguments, and working directory.
+  Debug the weight-free path when that is the selected run. Preserve existing
+  configurations and state whether a debugger session was actually tested.
+- **Explain it like a conversation.** Use familiar analogies alongside boxes,
+  arrows, grids, or Mermaid diagrams. For example, describe data handoffs as
+  parcels moving through stations, while mapping the picture to real functions
+  and data and explaining the analogy's limits. Introduce terms as needed;
+  shapes, code locations, and evidence remain precise.
 
-## 验证与发布
+## Validation and distribution
 
-[实际验收记录](docs/smoke-test.md) 使用本机开源 CPython `json.tool`，
-包含成功/错误输入的真实输出及 `pdb` 命中的三个断点。无需克隆项目或下载数据。
-本次为读取 Skill 后的人工应用测试；自动匹配仅做描述级审阅。
+The [validation record](docs/smoke-test.md) (in Chinese) uses the local open-source
+CPython `json.tool` example. It includes real outputs for valid and invalid
+inputs, three breakpoints reached with `pdb`, and a Python launch configuration
+checked with `debugpy`. No project clone or dataset download was needed. This
+was a manual application of the skill; implicit selection received a
+description-level review.
 
-若本机已有 bundled `skill-creator` 及带 PyYAML 的 Python，可运行其结构检查器：
+If the bundled `skill-creator` and a Python interpreter with PyYAML are available,
+run its structure validator:
 
 ```bash
 python /path/to/skill-creator/scripts/quick_validate.py skills/code-study
 ```
 
-发布时分发 `skills/code-study/` 并保留 [MIT 许可](LICENSE) 即可。
-示例只引用 CPython 的本机源码位置，没有复制其实现；CPython 遵循自己的许可。
+Distribute `skills/code-study/` and retain the [MIT license](LICENSE). The example
+references local CPython source locations without copying its implementation;
+CPython retains its own license.
